@@ -12,13 +12,13 @@ var tickRate = 10;
 $(document).ready(function(){
 
   var startGame = function() {
-      myGamePiece = new component(30, 30, "red", 10, 120);
-      demoGamePiece = new component(25, 25, "blue", 600, 120);
+      myGamePiece = new component(30, 30, "red", 60, 120);
+      demoGamePiece = new component(30, 30, "blue", 600, 120);
       myGameArea.start();
   }
 
   var myGameArea = {
-      canvas : document.createElement("canvas"),
+      canvas : document.getElementById("canvas"),
       start : function() {
           this.canvas.width = 800;
           this.canvas.height = 500;
@@ -26,7 +26,6 @@ $(document).ready(function(){
 
           floorPosition = myGameArea.canvas.height - 8;
 
-          document.body.insertBefore(this.canvas, document.body.childNodes[0]);
           this.interval = setInterval(updateGameArea, tickRate);
       },
       clear : function() {
@@ -34,8 +33,31 @@ $(document).ready(function(){
       }
   }
 
+
+  var gravitate = function (attractor, attracted) {
+
+    var direction;
+
+    var distX = (attractor.x - attracted.x);
+
+    if (attractor.x > attracted.x) {
+      direction = 1;
+    } else {
+      direction = -1;
+    }
+
+
+    // var distY = Math.abs(attractor.y - attracted.y);
+
+    var force = (1.0 / (distX * distX)) * direction * 0.5 ;
+
+    attracted.speedX += force * attracted.x;
+
+  }
+
+
   var component = function(width, height, color, x, y) {
-    this.reachedBottom = false;
+
       this.width = width;
       this.height = height;
       this.speedX = 0;
@@ -48,6 +70,7 @@ $(document).ready(function(){
           ctx.fillRect(this.x, this.y, this.width, this.height);
 
       }
+
       this.newPos = function() {
 
         this.speedY += 0.27;
@@ -62,23 +85,22 @@ $(document).ready(function(){
   }
 
   var updateGameArea = function() {
+
+      gravitate(myGamePiece, demoGamePiece);
+
       myGameArea.clear();
       myGamePiece.newPos();
       myGamePiece.update();
       demoGamePiece.newPos();
       demoGamePiece.update();
 
-
       if(direction === "right" ){
-        // slowDown--;
-
         if(myGamePiece.speedX > 0 ) {
           myGamePiece.speedX -= slowDownStep;
           if ( Math.abs(myGamePiece.speedX) < 0.04 ) {
             myGamePiece.speedX = 0;
           }
         }
-
       }; // end slowdown
       if(direction === "left"){
         if(myGamePiece.speedX < 0 ) {
@@ -89,16 +111,17 @@ $(document).ready(function(){
         }
 
       }; // end slowdown
-
-
   }
+
+
+  // Gravity: (mass / (dist * dist))
 
   // Key press checker! ////////////
   $(document).keydown(function(e) {
       switch(e.which) {
 
           case 37: // left
-          if(myGamePiece.speedX > -3){
+          if(myGamePiece.speedX > -4){
             myGamePiece.speedX -= 1;
           }
           break;
@@ -110,9 +133,14 @@ $(document).ready(function(){
           break;
 
           case 39: // right
-          if(myGamePiece.speedX < 3){
+          if(myGamePiece.speedX < 4) {
             myGamePiece.speedX += 1;
           }
+          break;
+
+          // FIXME: Need to properly impliment the mass/gravity model.
+          case 40: // down
+          myGamePiece.mass += 3000;
           break;
 
           default: return; // exit this handler for other keys
@@ -124,14 +152,19 @@ $(document).ready(function(){
       switch(e.which) {
 
           case 37: // left
-            direction = "left";
-            slowDown = 30;
-            slowDownStep = myGamePiece.speedX / slowDown;
-            break;
+          direction = "left";
+          slowDown = 30;
+          slowDownStep = myGamePiece.speedX / slowDown;
+          break;
+
           case 39: // right
           direction = "right";
           slowDown = 30;
           slowDownStep = myGamePiece.speedX / slowDown;
+          break;
+
+          case 40: // down
+          myGamePiece.mass = 0;
           break;
 
           default: return; // exit this handler for other keys

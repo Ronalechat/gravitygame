@@ -9,6 +9,22 @@ var particle = {
 		obj.velocity = vector.create(0, 0);
 		obj.velocity.setLength(speed);
 		obj.velocity.setAngle(direction);
+		//Delete below //////////////////
+		this.speedX = 0;
+    this.speedY = 0;
+		this.x = x;
+    this.y = y;
+		this.newPos = function() {
+        this.speedY += 0.27;
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // collision detection (floor)
+        if ( this.height + this.y >=  floorPosition ) {
+          this.y = floorPosition - this.height;
+        }
+			}
+		// To here.
 		return obj;
 	},
 
